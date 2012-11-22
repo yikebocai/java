@@ -1,9 +1,8 @@
 package org.bocai.dag;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -12,101 +11,172 @@ import java.util.Set;
  * directed acyclic graph
  * 
  * @author Administrator
- * 
  */
 public class DAG {
-	private List<DagNode> roots = new ArrayList<DagNode>();// 根节点可能有多个
-	private Map<String, DagNode> map = new HashMap<String, DagNode>();
 
-	public List<DagNode> getRoots() {
-		return roots;
-	}
+    private Set<Integer>          roots = new HashSet<Integer>();         // 根节点可能有多个
+    private Map<Integer, DagNode> map   = new HashMap<Integer, DagNode>();
 
-	public void setRoots(List<DagNode> roots) {
-		this.roots = roots;
-	}
+    public Set<Integer> getRoots() {
+        return roots;
+    }
 
-	public Map<String, DagNode> getMap() {
-		return map;
-	}
+    public void setRoots(Set<Integer> roots) {
+        this.roots = roots;
+    }
 
-	public void setMap(Map<String, DagNode> map) {
-		this.map = map;
-	}
+    public Map<Integer, DagNode> getMap() {
+        return map;
+    }
 
-	public void addNode(String parent, String child) {
+    public void setMap(Map<Integer, DagNode> map) {
+        this.map = map;
+    }
 
-		DagNode parentNode = new DagNode();
-		parentNode.setName(parent);
-		parentNode.addChild(child);
-		map.put(parent, parentNode);
+    public void addNode(Condition parent, Condition child) {
 
-		DagNode childNode = new DagNode();
-		childNode.setName(child);
-		map.put(child, childNode);
-	}
+        DagNode parentNode = new DagNode();
+        parentNode.setCondition(parent);
+        parentNode.addChild(child.getId());
+        map.put(parent.getId(), parentNode);
 
-	public boolean found(String parent) {
-		if (parent != null) {
-			if (map.get(parent) != null)
-				return true;
-		}
-		return false;
-	}
+        // 如果没有父节点，把它放到roots列表中
+        roots.add(parent.getId());
 
-	public void attachNode(String parent, String child) {
-		if (parent != null) {
-			DagNode node = map.get(parent);
-			if (node != null) {
-				node.addChild(child);
+        DagNode childNode = new DagNode();
+        childNode.setCondition(child);
+        map.put(child.getId(), childNode);
 
-				if (map.get(child) == null) {
-					DagNode childNode = new DagNode();
-					childNode.setName(child);
-					map.put(child, childNode);
-				}
-			}
-		}
+        // 如果有父节点，把它从roots中删除
+        roots.remove(child.getId());
+    }
 
-	}
+    public boolean found(Integer parentId) {
+        if (parentId != null) {
+            if (map.get(parentId) != null) return true;
+        }
+        return false;
+    }
 
-	public void merge(DAG dag) {
-		if (dag != null) {
-			Iterator itr = dag.getMap().entrySet().iterator();
-			while (itr.hasNext()) {
-				Entry entry = (Entry) itr.next();
-				String name = (String) entry.getKey();
-				DagNode node = (DagNode) entry.getValue();
+    public void attachNode(Integer parentId, Condition child) {
+        Set<Condition> children = new HashSet<Condition>();
+        children.add(child);
+        attachNode(parentId, children);
+    }
 
-				if (found(name)) {
-					attachNode(name, node.getChildren());
-					dag.remove(name);
-				}
-			}
-		}
+    public void attachNode(Integer parentId, Set<Condition> children) {
+        if (parentId != null) {
+            DagNode node = map.get(parentId);
+            if (node != null) {
 
-	}
+                Iterator itr = children.iterator();
+                while (itr.hasNext()) {
+                    Condition child = (Condition) itr.next();
+                    if (child != null) {
+                        Integer id = child.getId();
+                        node.addChild(id);
+                        if (map.get(id) == null) {
+                            DagNode childNode = new DagNode();
+                            childNode.setCondition(child);
+                            map.put(id, childNode);
+                        }
 
-	private void remove(String name) {
-		map.remove(name);
+                        // 如果有父节点，把它从roots中删除
+                        roots.remove(id);
+                    }
+                }
+            }
+        }
 
-	}
+    }
 
-	private void attachNode(String parent, Set<String> children) {
-		if (parent != null && children != null) {
-			DagNode node = map.get(parent);
-			if (node != null) {
-				Iterator itr = children.iterator();
-				while (itr.hasNext()) {
-					node.addChild((String) itr.next());
-				}
-			}
-		}
-	}
+    public void merge(DAG dag) {
+        if (dag != null) {
+            Iterator itr = dag.getMap().entrySet().iterator();
+            while (itr.hasNext()) {
+                Entry entry = (Entry) itr.next();
+                Integer id = (Integer) entry.getKey();
+                DagNode node = (DagNode) entry.getValue();
 
-	public int size() {
+                // 如果能在新的图中找到，则把这个节点合并到新的图中，并删除它及它的子节点在老图中的存储
+                if (found(id)) {
+                    Iterator itr2 = node.getChildren().iterator();
+                    while (itr2.hasNext()) {
+                        Integer childId = (Integer) itr2.next();
+                        attachNode(id, dag.getMap().get(childId).getCondition());
+                        dag.remove(childId);
+                    }
 
-		return map.size();
-	}
+                    dag.remove(id);
+                }
+            }
+        }
 
+    }
+
+    private void remove(Integer condId) {
+        map.remove(condId);
+
+    }
+
+    public int size() {
+
+        return map.size();
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        Iterator itr = map.entrySet().iterator();
+        while (itr.hasNext()) {
+            Entry entry = (Entry) itr.next();
+            Integer condId = (Integer) entry.getKey();
+            DagNode node = (DagNode) entry.getValue();
+            sb.append(node.getCondition()).append("->").append(node.getChildren()).append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * 遍历图，找到所有匹配的节点，从根节点开始，深度遍历，如果有不匹配的节点即可回溯
+     * 
+     * @param fact
+     * @return
+     */
+    public Set<Integer> traverse(Fact fact) {
+        Set<Integer> matched = new HashSet<Integer>();
+
+        Iterator itr = roots.iterator();
+        while (itr.hasNext()) {
+            Integer next = (Integer) itr.next();
+            traverse2(matched, next,fact);
+        }
+        return matched;
+    }
+
+    /**
+     * @param matched
+     * @param itr
+     */
+    private void traverse2(Set<Integer> matched, Integer id,Fact fact) {
+        DagNode node = map.get(id);
+
+        if (node != null && node.getCondition().match(fact)) {
+            
+            matched.add(id);
+
+            Set<Integer> children = node.getChildren();
+            if (children != null && children.size() > 0) {
+                Iterator itr = children.iterator();
+                while (itr.hasNext()) {
+                    // 递归
+                    Integer next = (Integer) itr.next();
+                    if (next != null) {
+                        traverse2(matched, next, fact);
+                    }
+                }
+            }
+        }
+    }
 }

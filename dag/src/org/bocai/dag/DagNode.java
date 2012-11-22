@@ -5,40 +5,53 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class DagNode {
-	private Set<String> children=new HashSet<String>();
-	private String name;
 
-	 
-	public Set<String> getChildren() {
-		return children;
-	}
+    private Condition    condition;
+    private Set<Integer> children = new HashSet<Integer>();
 
-	public void setChildren(Set<String> children) {
-		this.children = children;
-	}
+   
+    
+    public Set<Integer> getChildren() {
+        return children;
+    }
 
-	public String getName() {
-		return name;
-	}
+    
+    public void setChildren(Set<Integer> children) {
+        this.children = children;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public Condition getCondition() {
+        return condition;
+    }
 
-	public void addChild(String child) { 
-		children.add(child);
-		
-	}
-	
-	public String toString(){
-		StringBuilder sb=new StringBuilder();
-		sb.append(name).append("->(");
-		Iterator itr=children.iterator();
-		while(itr.hasNext()){
-			sb.append((String)itr.next()).append(" ");
-		}
-		sb.append(")");
-		return sb.toString();
-	}
+    public void setCondition(Condition node) {
+        this.condition = node;
+    }
+
+    public void addChild(Integer child) { 
+        children.add(child);
+
+    }
+
+    public void addChildren(Set<Integer> children) {
+        this.children.addAll(children);
+
+    }
+  
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(condition);
+
+        if (children != null && children.size() > 0) {
+            sb.append("->(");
+            Iterator itr = children.iterator();
+            while (itr.hasNext()) {
+                sb.append((Integer) itr.next()).append(" ");
+            }
+            sb.append(")");
+        }
+        return sb.toString();
+    }
 
 }

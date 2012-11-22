@@ -1,32 +1,69 @@
 package org.bocai.dag;
 
 public class Fact {
-	private String field1;
-	private String field2;
-	private String field3;
 
-	public String getField1() {
-		return field1;
-	}
+    private String country;
+    private String amount;
+    private String cookie;
+    private String email;
+    private String os;
+    private String login_cont_today;
+    private String memberType;
 
-	public void setField1(String field1) {
-		this.field1 = field1;
-	}
+    public String getCountry() {
+        return country;
+    }
 
-	public String getField2() {
-		return field2;
-	}
+    public void setCountry(String country) {
+        this.country = country;
+    }
 
-	public void setField2(String s2) {
-		this.field2 = s2;
-	}
+    public String getAmount() {
+        return amount;
+    }
 
-	public String getField3() {
-		return field3;
-	}
+    public void setAmount(String amount) {
+        this.amount = amount;
+    }
 
-	public void setField3(String field3) {
-		this.field3 = field3;
-	}
+    public String getCookie() {
+        return cookie;
+    }
+
+    public void setCookie(String cookie) {
+        this.cookie = cookie;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getOs() {
+        return os;
+    }
+
+    public void setOs(String os) {
+        this.os = os;
+    }
+
+    public String getLogin_cont_today() {
+        return login_cont_today;
+    }
+
+    public void setLogin_cont_today(String login_cont_today) {
+        this.login_cont_today = login_cont_today;
+    }
+
+    public String getMemberType() {
+        return memberType;
+    }
+
+    public void setMemberType(String memberType) {
+        this.memberType = memberType;
+    }
 
 }
