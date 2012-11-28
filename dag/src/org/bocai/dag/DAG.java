@@ -3,6 +3,7 @@ package org.bocai.dag;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -14,15 +15,35 @@ import java.util.Set;
  */
 public class DAG {
 
-    private Set<Integer>          roots = new HashSet<Integer>();         // 根节点可能有多个
-    private Map<Integer, DagNode> map   = new HashMap<Integer, DagNode>();
+    private Map<Integer, DagNode> map = new HashMap<Integer, DagNode>();
 
-    public Set<Integer> getRoots() {
-        return roots;
-    }
+    public DAG(List<Rule> rules) {
+        // 添加一个虚拟根节点，避免构建多个图
+        DagNode dummyRootNode = new DagNode();
+        Condition cond = new Condition(0, "1", Operator.STRING_EQUAL, "1");
+        dummyRootNode.setCondition(cond);
+        map.put(0, dummyRootNode);
 
-    public void setRoots(Set<Integer> roots) {
-        this.roots = roots;
+        // 构建有向无环图
+        for (Rule rule : rules) {
+            List<Condition> conditions = rule.getConditions();
+            for (int i = 0; i < conditions.size(); i++) {
+                Condition parent = conditions.get(i);
+                switch (rule.getCondOperator()) {
+                    case AND:
+                        Condition child = null;
+                        if (i + 1 < conditions.size()) {
+                            child = conditions.get(i + 1);
+                        }
+
+                        addNode(parent, child);
+                        break;
+                    case OR:
+                        addNode(parent, null);
+                }
+
+            }
+        }
     }
 
     public Map<Integer, DagNode> getMap() {
@@ -33,27 +54,44 @@ public class DAG {
         this.map = map;
     }
 
-    public void addNode(Condition parent, Condition child) {
-
-        DagNode parentNode = new DagNode();
-        parentNode.setCondition(parent);
-        parentNode.addChild(child.getId());
-        map.put(parent.getId(), parentNode);
-
-        // 如果没有父节点，把它放到roots列表中
-        roots.add(parent.getId());
-
-        DagNode childNode = new DagNode();
-        childNode.setCondition(child);
-        map.put(child.getId(), childNode);
-
-        // 如果有父节点，把它从roots中删除
-        roots.remove(child.getId());
+    private DagNode getRootNode() {
+        return map.get(0);
     }
 
-    public boolean found(Integer parentId) {
-        if (parentId != null) {
-            if (map.get(parentId) != null) return true;
+    public void addNode(Condition parent, Condition child) {
+        // 至少要有一个条件
+        if (parent != null) {
+            DagNode parentNode = map.get(parent.getId());
+
+            // 构建节点，建立父子关系
+            if (parentNode == null) {
+                parentNode = new DagNode();
+                parentNode.setCondition(parent);
+
+                // 如果parent没有父节点，把它放到虚假根节点下面
+                DagNode rootNode = getRootNode();
+                rootNode.addChild(parent.getId());
+                map.put(parent.getId(), parentNode);
+            }
+
+            if (child != null) {
+                parentNode.addChild(child.getId());
+
+                DagNode childNode = map.get(child.getId());
+                if (childNode == null) {
+                    childNode = new DagNode();
+                    childNode.setCondition(child);
+                }
+                childNode.addParent(parent.getId());
+                map.put(child.getId(), childNode);
+            }
+
+        }
+    }
+
+    public boolean found(Integer id) {
+        if (id != null) {
+            if (map.get(id) != null) return true;
         }
         return false;
     }
@@ -68,7 +106,6 @@ public class DAG {
         if (parentId != null) {
             DagNode node = map.get(parentId);
             if (node != null) {
-
                 Iterator itr = children.iterator();
                 while (itr.hasNext()) {
                     Condition child = (Condition) itr.next();
@@ -80,62 +117,11 @@ public class DAG {
                             childNode.setCondition(child);
                             map.put(id, childNode);
                         }
-
-                        // 如果有父节点，把它从roots中删除
-                        roots.remove(id);
                     }
                 }
             }
         }
 
-    }
-
-    public void merge(DAG dag) {
-        if (dag != null) {
-            Iterator itr = dag.getMap().entrySet().iterator();
-            while (itr.hasNext()) {
-                Entry entry = (Entry) itr.next();
-                Integer id = (Integer) entry.getKey();
-                DagNode node = (DagNode) entry.getValue();
-
-                // 如果能在新的图中找到，则把这个节点合并到新的图中，并删除它及它的子节点在老图中的存储
-                if (found(id)) {
-                    Iterator itr2 = node.getChildren().iterator();
-                    while (itr2.hasNext()) {
-                        Integer childId = (Integer) itr2.next();
-                        attachNode(id, dag.getMap().get(childId).getCondition());
-                        dag.remove(childId);
-                    }
-
-                    dag.remove(id);
-                }
-            }
-        }
-
-    }
-
-    private void remove(Integer condId) {
-        map.remove(condId);
-
-    }
-
-    public int size() {
-
-        return map.size();
-    }
-
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        Iterator itr = map.entrySet().iterator();
-        while (itr.hasNext()) {
-            Entry entry = (Entry) itr.next();
-            Integer condId = (Integer) entry.getKey();
-            DagNode node = (DagNode) entry.getValue();
-            sb.append(node.getCondition()).append("->").append(node.getChildren()).append("\n");
-        }
-
-        return sb.toString();
     }
 
     /**
@@ -147,23 +133,16 @@ public class DAG {
     public Set<Integer> traverse(Fact fact) {
         Set<Integer> matched = new HashSet<Integer>();
 
-        Iterator itr = roots.iterator();
-        while (itr.hasNext()) {
-            Integer next = (Integer) itr.next();
-            traverse2(matched, next,fact);
-        }
+        traverse2(matched, 0, fact);
+
         return matched;
     }
 
-    /**
-     * @param matched
-     * @param itr
-     */
-    private void traverse2(Set<Integer> matched, Integer id,Fact fact) {
+    private void traverse2(Set<Integer> matched, Integer id, Fact fact) {
         DagNode node = map.get(id);
 
-        if (node != null && node.getCondition().match(fact)) {
-            
+        if (id == 0 || node != null && node.getCondition().match(fact)) {
+
             matched.add(id);
 
             Set<Integer> children = node.getChildren();
@@ -178,5 +157,19 @@ public class DAG {
                 }
             }
         }
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        Iterator itr = map.entrySet().iterator();
+        while (itr.hasNext()) {
+            Entry entry = (Entry) itr.next();
+            Integer condId = (Integer) entry.getKey();
+            DagNode node = (DagNode) entry.getValue();
+            sb.append(node.getCondition()).append("->").append(node.getChildren()).append("\n");
+        }
+
+        return sb.toString();
     }
 }

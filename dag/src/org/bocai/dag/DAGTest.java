@@ -68,9 +68,9 @@ public class DAGTest {
         rules.add(rule3);
         rules.add(rule4);
 
-        Forest forest = DagUtil.build(rules);
-        System.out.println(forest);
-        Set<Integer> conds = forest.traverse(fact);
+        DAG dag=new DAG(rules); 
+        System.out.println(dag);
+        Set<Integer> conds = dag.traverse(fact);
         List<Rule> matched = DagUtil.matchRule(rules, conds);
         System.out.println("matched rule:");
         for (Rule rule : matched) {

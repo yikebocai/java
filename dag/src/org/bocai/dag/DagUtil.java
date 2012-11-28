@@ -11,27 +11,6 @@ import java.util.Set;
  */
 public class DagUtil {
 
-    public static Forest build(List<Rule> rules) {
-        Forest forest = new Forest();
-
-        for (Rule rule : rules) {
-            List<Condition> conditions = rule.getConditions();
-            for (int i = 0; i < conditions.size(); i++) {
-                Condition child = null;
-                if (i + 1 < conditions.size()) {
-                    child = conditions.get(i + 1);
-                }
-
-                Condition parent = conditions.get(i);
-                forest.addNode(parent, child);
-            }
-        }
-
-        forest.merge();
-
-        return forest;
-    }
-
     /**
      * 根据命中的条件，得到匹配的规则列表
      * 
