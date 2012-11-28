@@ -6,9 +6,9 @@
 package org.bocai.dag;
 
 /**
- * 类Operator.java的实现描述：TODO 请添加类实现描述信息
+ * 操作符，把左值和右值做为参数进行布尔运算，例如：age > 20
  * 
- * @author xinbo.zhangxb@alibaba-inc.com Nov 21, 2012 7:09:11 PM
+ * @author yikebocai@gmail.com Nov 21, 2012 7:09:11 PM
  */
 public enum Operator {
     STRING_EQUAL("="), STRING_NOT_EQUAL("!="), INT_EQUAL("=="), INT_GREAT_THAN(">"), INT_LITTLE_THAN("<");

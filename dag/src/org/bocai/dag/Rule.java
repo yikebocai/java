@@ -3,7 +3,11 @@ package org.bocai.dag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
+/**
+ * 
+ * 规则，指一个基本的业务判断逻辑，由多个条件组成，比如：C1^C2|C3
+ * @author yikebocai@gmail.com Nov 27, 2012 5:48:57 PM
+ */
 public class Rule {
 
     private Integer         id;

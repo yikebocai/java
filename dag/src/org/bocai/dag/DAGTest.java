@@ -14,6 +14,8 @@ public class DAGTest {
         fact.setAmount("501");
         fact.setCountry("CN");
         fact.setMemberType("IFM");
+        fact.setOs("Linux");
+        fact.setLogin_count_today("10");
 
         Condition c1 = new Condition(1, "country", Operator.STRING_EQUAL, "CN");
         Condition c2 = new Condition(2, "amount", Operator.INT_GREAT_THAN, "500");
@@ -22,6 +24,9 @@ public class DAGTest {
         Condition c5 = new Condition(5, "cookie", Operator.STRING_EQUAL, "123456");
         Condition c6 = new Condition(6, "os", Operator.STRING_NOT_EQUAL, "windows");
         Condition c7 = new Condition(7, "login_count_today", Operator.INT_LITTLE_THAN, "10");
+        Condition c8 = new Condition(8, "country", Operator.STRING_EQUAL, "US");
+        Condition c9 = new Condition(9, "country", Operator.STRING_EQUAL, "JP");
+
 
         Rule rule1 = new Rule();
         rule1.addCondition(c1);
@@ -51,6 +56,8 @@ public class DAGTest {
         Rule rule4 = new Rule();
         rule4.addCondition(c6);
         rule4.addCondition(c7);
+        rule4.addCondition(c8);
+        rule4.addCondition(c9);
         rule4.setCondOperator(CondOperator.OR);
         rule4.setId(14);
         rule4.setName("rule4");

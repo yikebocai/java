@@ -8,10 +8,11 @@
 package org.bocai.dag;
 
 /**
- * 类CondOperator.java的实现描述：TODO 请添加类实现描述信息
- * @author xinbo.zhangxb@alibaba-inc.com Nov 21, 2012 7:18:27 PM
+ * 条件操作符，决定规则中多个条件的结果合并逻辑
+ * @author yikebocai@gmail.com Nov 21, 2012 7:18:27 PM
  */
 public enum CondOperator {
-    AND,OR;
+    AND,//所有的条件为真，才返回真
+    OR; //只要有一个条件为，就返回真
 
 }

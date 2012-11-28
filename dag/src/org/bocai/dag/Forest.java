@@ -77,6 +77,7 @@ public class Forest {
 
         for (int i = 0; i < graphs.size(); i++) {
             DAG dag = graphs.get(i);
+            sb.append("DAG").append(i).append(":\n");
             sb.append(dag.toString()).append("\n\n");
 
         }

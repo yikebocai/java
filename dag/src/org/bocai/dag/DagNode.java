@@ -3,7 +3,11 @@ package org.bocai.dag;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
+/**
+ * 
+ * 图中的节点
+ * @author yikebocai@gmail.com Nov 27, 2012 5:53:15 PM
+ */
 public class DagNode {
 
     private Condition    condition;

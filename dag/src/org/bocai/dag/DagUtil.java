@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * 构建有向无环图
  * 
- * @author bocai
+ * @author yikebocai@gmail.com
  */
 public class DagUtil {
 

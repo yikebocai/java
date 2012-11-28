@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * directed acyclic graph
  * 
- * @author Administrator
+ * @author yikebocai@gmail.com
  */
 public class DAG {
 

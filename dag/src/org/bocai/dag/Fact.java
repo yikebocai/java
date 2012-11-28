@@ -1,5 +1,9 @@
 package org.bocai.dag;
-
+/**
+ * 
+ * 事实，拿来做规则匹配的数据对象
+ * @author yikebocai@gmail.com Nov 27, 2012 5:53:56 PM
+ */
 public class Fact {
 
     private String country;
@@ -7,7 +11,7 @@ public class Fact {
     private String cookie;
     private String email;
     private String os;
-    private String login_cont_today;
+    private String login_count_today;
     private String memberType;
 
     public String getCountry() {
@@ -50,12 +54,12 @@ public class Fact {
         this.os = os;
     }
 
-    public String getLogin_cont_today() {
-        return login_cont_today;
+    public String getLogin_count_today() {
+        return login_count_today;
     }
 
-    public void setLogin_cont_today(String login_cont_today) {
-        this.login_cont_today = login_cont_today;
+    public void setLogin_count_today(String login_count_today) {
+        this.login_count_today = login_count_today;
     }
 
     public String getMemberType() {
