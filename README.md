@@ -12,8 +12,9 @@
 
 ##TODO
 1. 增加`dummpy top node`，将多个图合成一个
-2. 性能优化，将(left operator right)条件表达式中左值和操作符相等的条件进行合并处理提高性能，比如：String的做Hash，
+2. 将(left operator right)条件表达式中左值和操作符相等的条件进行合并处理提高性能，比如：String的做Hash，
 Int的排序处理和二分查找
+3. 执行结果的缓存，减少计算成本
 
 ##Example
 测试用例：
