@@ -15,14 +15,12 @@ import java.util.Set;
  */
 public class DAG {
 
-    private Map<Integer, DagNode> map = new HashMap<Integer, DagNode>();
+    private Map<String, DagNode> map = new HashMap<String, DagNode>();
 
     public DAG(List<Rule> rules) {
         // 添加一个虚拟根节点，避免构建多个图
         DagNode dummyRootNode = new DagNode();
-        Condition cond = new Condition(0, "1", Operator.STRING_EQUAL, "1");
-        dummyRootNode.setCondition(cond);
-        map.put(0, dummyRootNode);
+        map.put(DagUtil.DUMMY_ROOT_KEY, dummyRootNode);
 
         // 构建有向无环图
         for (Rule rule : rules) {
@@ -46,44 +44,50 @@ public class DAG {
         }
     }
 
-    public Map<Integer, DagNode> getMap() {
+    public Map<String, DagNode> getMap() {
         return map;
     }
 
-    public void setMap(Map<Integer, DagNode> map) {
+    public void setMap(Map<String, DagNode> map) {
         this.map = map;
     }
 
     private DagNode getRootNode() {
-        return map.get(0);
+        return map.get(DagUtil.DUMMY_ROOT_KEY);
     }
 
     public void addNode(Condition parent, Condition child) {
         // 至少要有一个条件
         if (parent != null) {
-            DagNode parentNode = map.get(parent.getId());
+            DagNode parentNode = map.get(parent.getPrefix());
 
             // 构建节点，建立父子关系
             if (parentNode == null) {
-                parentNode = new DagNode();
-                parentNode.setCondition(parent);
+                parentNode = DagNodeFactory.create(parent.getOperator());
+                parentNode.addCondition(parent);
 
                 // 如果parent没有父节点，把它放到虚假根节点下面
                 DagNode rootNode = getRootNode();
-                rootNode.addChild(parent.getId());
-                map.put(parent.getId(), parentNode);
+                rootNode.addChild(parent.getPrefix());
+                map.put(parent.getPrefix(), parentNode);
             }
 
             if (child != null) {
-                parentNode.addChild(child.getId());
-
-                DagNode childNode = map.get(child.getId());
-                if (childNode == null) {
-                    childNode = new DagNode();
-                    childNode.setCondition(child);
+                //如果前后两条件前缀相等，刚合并到一个节点里
+                String prefix = child.getPrefix();
+                if (prefix.equals(parent.getPrefix())) {
+                    parentNode.addCondition(child);
+                } else {
+                    parentNode.addChild(prefix);
+                    DagNode childNode = map.get(prefix);
+                    if (childNode == null) {
+                        childNode = DagNodeFactory.create(child.getOperator());
+                        childNode.addCondition(child);
+                    }
+                    childNode.addParent(parent.getPrefix());
+                    map.put(prefix, childNode);
                 }
-                childNode.addParent(parent.getId());
-                map.put(child.getId(), childNode);
+
             }
 
         }
@@ -96,13 +100,13 @@ public class DAG {
         return false;
     }
 
-    public void attachNode(Integer parentId, Condition child) {
+    public void attachNode(String parentId, Condition child) {
         Set<Condition> children = new HashSet<Condition>();
         children.add(child);
         attachNode(parentId, children);
     }
 
-    public void attachNode(Integer parentId, Set<Condition> children) {
+    public void attachNode(String parentId, Set<Condition> children) {
         if (parentId != null) {
             DagNode node = map.get(parentId);
             if (node != null) {
@@ -110,11 +114,11 @@ public class DAG {
                 while (itr.hasNext()) {
                     Condition child = (Condition) itr.next();
                     if (child != null) {
-                        Integer id = child.getId();
+                        String id = child.getPrefix();
                         node.addChild(id);
                         if (map.get(id) == null) {
-                            DagNode childNode = new DagNode();
-                            childNode.setCondition(child);
+                            DagNode childNode = DagNodeFactory.create(child.getOperator());
+                            childNode.addCondition(child);
                             map.put(id, childNode);
                         }
                     }
@@ -131,26 +135,34 @@ public class DAG {
      * @return
      */
     public Set<Integer> traverse(Fact fact) {
-        Set<Integer> matched = new HashSet<Integer>();
+        Set<Integer> result = new HashSet<Integer>();
+        Set<String> matched = new HashSet<String>();
+        traverse2(matched, DagUtil.DUMMY_ROOT_KEY, fact);
 
-        traverse2(matched, 0, fact);
-
-        return matched;
+        Iterator itr = matched.iterator();
+        while (itr.hasNext()) {
+            String key = (String) itr.next();
+            DagNode node = map.get(key);
+            if (node != null) {
+                result.addAll(node.getMatched());
+            }
+        }
+        return result;
     }
 
-    private void traverse2(Set<Integer> matched, Integer id, Fact fact) {
+    private void traverse2(Set<String> matched, String id, Fact fact) {
         DagNode node = map.get(id);
 
-        if (id == 0 || node != null && node.getCondition().match(fact)) {
+        if (DagUtil.DUMMY_ROOT_KEY.equals(id) || node != null && node.match(fact)) {
 
             matched.add(id);
 
-            Set<Integer> children = node.getChildren();
+            Set<String> children = node.getChildren();
             if (children != null && children.size() > 0) {
                 Iterator itr = children.iterator();
                 while (itr.hasNext()) {
                     // 递归
-                    Integer next = (Integer) itr.next();
+                    String next = (String) itr.next();
                     if (next != null) {
                         traverse2(matched, next, fact);
                     }
@@ -165,9 +177,9 @@ public class DAG {
         Iterator itr = map.entrySet().iterator();
         while (itr.hasNext()) {
             Entry entry = (Entry) itr.next();
-            Integer condId = (Integer) entry.getKey();
+            String key = (String) entry.getKey();
             DagNode node = (DagNode) entry.getValue();
-            sb.append(node.getCondition()).append("->").append(node.getChildren()).append("\n");
+            sb.append(key).append("->").append(node).append("\n");
         }
 
         return sb.toString();

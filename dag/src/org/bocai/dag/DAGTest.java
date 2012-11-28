@@ -40,7 +40,7 @@ public class DAGTest {
         rule2.addCondition(c1);
         rule2.addCondition(c2);
         rule2.addCondition(c4);
-        rule2.setCondOperator(CondOperator.AND);
+        rule2.setCondOperator(CondOperator.OR);
         rule2.setId(12);
         rule2.setName("rule2");
         

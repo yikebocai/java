@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 构建有向无环图
+ * 工具类
  * 
  * @author yikebocai@gmail.com
  */
 public class DagUtil {
+
+    public final static String DUMMY_ROOT_KEY = "@dummy-@";
 
     /**
      * 根据命中的条件，得到匹配的规则列表

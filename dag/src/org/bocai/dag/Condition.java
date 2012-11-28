@@ -58,6 +58,10 @@ public class Condition {
         this.operator = operator;
     }
  
+    public String getPrefix(){
+        return left+"-"+operator.name();
+    }
+    
     public String toString() {
         return "(" + id + ":" + left + " " + operator.getValue() + " " + right + ")";
     }
